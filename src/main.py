@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .config import ConfigManager
 from .ui import UI
-from .templates import ReactTemplate, ReactSupabaseTemplate, PythonTemplate
+from .templates import ReactTemplate, ReactSupabaseTemplate, PythonTemplate, NextjsTemplate
 
 app = typer.Typer(
     name="flow",
@@ -22,13 +22,15 @@ console = Console()
 config = ConfigManager()
 ui = UI()
 
-def get_template_class(project_type: str):
-    """Get the appropriate template class based on project type."""
-    return {
-        "React Frontend": ReactTemplate,
-        "React + Supabase": ReactSupabaseTemplate,
-        "Python Project": PythonTemplate
-    }.get(project_type)
+def get_template_class(project_type: str, framework: str = None):
+    """Get the appropriate template class based on project type and framework."""
+    if project_type == "React Frontend":
+        return NextjsTemplate if framework == "next" else ReactTemplate
+    elif project_type == "React + Supabase":
+        return ReactSupabaseTemplate
+    elif project_type == "Python Project":
+        return PythonTemplate
+    return None
 
 @new_app.command("project")
 def new_project():
@@ -44,11 +46,16 @@ def new_project():
     # Get project type
     project_type = ui.select_project_type()
     
+    # Get framework for React projects
+    framework = None
+    if project_type == "React Frontend":
+        framework = ui.select_react_framework()
+    
     # Get project features
-    features = ui.select_features(project_type)
+    features = ui.select_features(project_type, framework)
     
     # Get template class
-    template_class = get_template_class(project_type)
+    template_class = get_template_class(project_type, framework)
     if not template_class:
         ui.print_error(f"Unknown project type: {project_type}")
         raise typer.Exit(1)

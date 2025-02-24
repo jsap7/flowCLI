@@ -20,7 +20,7 @@ class UI:
         {
             "name": "React Frontend",
             "display": "⚛️  React Frontend",
-            "description": "Modern React application with Vite",
+            "description": "Modern React application (Next.js or Vite)",
             "value": "React Frontend"
         },
         {
@@ -34,6 +34,18 @@ class UI:
             "display": "🐍 Python Project",
             "description": "Production-ready Python project structure",
             "value": "Python Project"
+        }
+    ]
+
+    # Framework choices for React
+    REACT_FRAMEWORKS = [
+        {
+            "name": "📦 Next.js\n   Full-featured React framework with SSR and file-based routing",
+            "value": "next"
+        },
+        {
+            "name": "⚡ Vite\n   Lightning fast, modern build tool for React SPAs",
+            "value": "vite"
         }
     ]
 
@@ -116,7 +128,12 @@ class UI:
     def get_project_name(default: str = None) -> str:
         """Prompt for project name."""
         console.print()
-        console.print("📝 [bold]Project Configuration:[/bold]")
+        console.print(Panel(
+            Text("Project Configuration", style="bold blue", justify="center"),
+            box=box.ROUNDED,
+            border_style="blue",
+            padding=(1, 2)
+        ))
         console.print()
         
         return questionary.text(
@@ -125,19 +142,48 @@ class UI:
             qmark="💡"
         ).ask()
 
-    @staticmethod
-    def select_features(project_type: str) -> List[str]:
+    @classmethod
+    def select_react_framework(cls) -> str:
+        """Prompt for React framework selection."""
+        console.print()
+        console.print(Panel(
+            Text("Select Framework", style="bold blue", justify="center"),
+            box=box.ROUNDED,
+            border_style="blue",
+            padding=(1, 2)
+        ))
+        console.print()
+        
+        return questionary.select(
+            "Choose a framework:",
+            choices=cls.REACT_FRAMEWORKS,
+            qmark="📦",
+            pointer="➜"
+        ).ask()
+
+    @classmethod
+    def select_features(cls, project_type: str, framework: str = None) -> List[str]:
         """Prompt for feature selection based on project type."""
         choices = []
         
         if project_type in ["React Frontend", "React + Supabase"]:
+            # Base React features
             choices = [
                 {"name": "⚡ TypeScript", "value": "TypeScript", "checked": True},
                 {"name": "🎨 Tailwind CSS", "value": "Tailwind CSS"},
                 {"name": "🔍 ESLint", "value": "ESLint"},
                 {"name": "✨ Prettier", "value": "Prettier"}
             ]
+
+            # Next.js specific features
+            if framework == "next":
+                choices.extend([
+                    {"name": "📱 PWA Support", "value": "PWA"},
+                    {"name": "🔄 API Routes", "value": "API Routes"},
+                    {"name": "📊 MongoDB (with Prisma)", "value": "MongoDB"}
+                ])
             
+            # Supabase specific features
             if project_type == "React + Supabase":
                 choices.extend([
                     {"name": "🔐 Authentication", "value": "Authentication"},
