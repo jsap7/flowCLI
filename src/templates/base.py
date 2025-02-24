@@ -3,13 +3,34 @@ from pathlib import Path
 from typing import List, Dict, Any
 import subprocess
 import shutil
+import signal
+import sys
 
 class BaseTemplate(ABC):
     def __init__(self, project_name: str, features: List[str], target_dir: Path):
         self.project_name = project_name
         self.features = features
         self.target_dir = target_dir
+        self._setup_interrupt_handler()
         
+    def _setup_interrupt_handler(self):
+        """Set up handler for SIGINT (Ctrl+C)."""
+        def signal_handler(sig, frame):
+            print("\n\nInterrupt received, cleaning up...")
+            self._cleanup()
+            sys.exit(1)
+        
+        signal.signal(signal.SIGINT, signal_handler)
+    
+    def _cleanup(self):
+        """Clean up any created directories or files."""
+        try:
+            if self.target_dir.exists():
+                shutil.rmtree(self.target_dir)
+                print(f"\nCleaned up directory: {self.target_dir}")
+        except Exception as e:
+            print(f"\nError during cleanup: {e}")
+    
     @abstractmethod
     def generate(self):
         """Generate the project structure."""
@@ -29,7 +50,12 @@ class BaseTemplate(ABC):
             subprocess.run(cmd, check=True, cwd=cwd or self.target_dir)
             return True
         except subprocess.CalledProcessError:
+            self._cleanup()  # Clean up on command failure
             return False
+        except KeyboardInterrupt:
+            print("\n\nInterrupt received during command execution, cleaning up...")
+            self._cleanup()
+            sys.exit(1)
     
     def _copy_template(self, src: Path, dest: Path):
         """Copy template files."""
@@ -40,4 +66,8 @@ class BaseTemplate(ABC):
     
     def open_in_cursor(self):
         """Open the project in Cursor."""
-        self._run_command(["cursor", str(self.target_dir)]) 
+        try:
+            self._run_command(["cursor", str(self.target_dir)])
+        except Exception:
+            # Don't clean up if Cursor fails to open - project was already created
+            pass 

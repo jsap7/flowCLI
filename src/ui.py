@@ -19,15 +19,33 @@ class UI:
     PROJECT_TYPES = [
         {
             "name": "React Frontend",
-            "display": "⚛️  React Frontend",
+            "display": "🔄 React Frontend",
             "description": "Modern React application (Next.js or Vite)",
             "value": "React Frontend"
         },
         {
             "name": "React + Supabase",
-            "display": "⚡ React + Supabase",
+            "display": "🔄 React + Supabase",
             "description": "Full-stack React with Supabase backend",
             "value": "React + Supabase"
+        },
+        {
+            "name": "T3 Stack",
+            "display": "🚀 T3 Stack",
+            "description": "Next.js + tRPC + Prisma + Tailwind + TypeScript",
+            "value": "T3 Stack"
+        },
+        {
+            "name": "FastAPI Backend",
+            "display": "⏩ FastAPI Backend",
+            "description": "Modern Python API with SQLAlchemy and auto-docs",
+            "value": "FastAPI Backend"
+        },
+        {
+            "name": "Express API",
+            "display": "🛠️ Express API",
+            "description": "TypeScript API with Prisma and Swagger",
+            "value": "Express API"
         },
         {
             "name": "Python Project",
@@ -44,8 +62,24 @@ class UI:
             "value": "next"
         },
         {
-            "name": "⚡ Vite\n   Lightning fast, modern build tool for React SPAs",
+            "name": "❗ Vite\n   Lightning fast, modern build tool for React SPAs",
             "value": "vite"
+        }
+    ]
+
+    # Database choices
+    DATABASE_TYPES = [
+        {
+            "name": "🐘 PostgreSQL\n   Robust, open-source relational database",
+            "value": "postgres"
+        },
+        {
+            "name": "📊 MongoDB\n   Flexible, document-based NoSQL database",
+            "value": "mongodb"
+        },
+        {
+            "name": "🔲 SQLite\n   Lightweight, file-based database",
+            "value": "sqlite"
         }
     ]
 
@@ -190,6 +224,47 @@ class UI:
                     {"name": "📊 Database Helpers", "value": "Database Helpers"},
                     {"name": "📁 Storage Helpers", "value": "Storage Helpers"}
                 ])
+
+        elif project_type == "T3 Stack":
+            choices = [
+                {"name": "🔐 NextAuth.js", "value": "NextAuth", "checked": True},
+                {"name": "📊 Prisma", "value": "Prisma", "checked": True},
+                {"name": "🎨 Tailwind CSS", "value": "Tailwind CSS", "checked": True},
+                {"name": "🔍 ESLint", "value": "ESLint", "checked": True},
+                {"name": "✨ Prettier", "value": "Prettier", "checked": True},
+                {"name": "📱 PWA Support", "value": "PWA"},
+                {"name": "🎭 Jest Testing", "value": "Jest"},
+                {"name": "🎮 tRPC Subscriptions", "value": "tRPC-Sub"},
+                {"name": "📈 Prisma Studio UI", "value": "Prisma-Studio"}
+            ]
+
+        elif project_type == "FastAPI Backend":
+            choices = [
+                {"name": "🔐 JWT Authentication", "value": "JWT", "checked": True},
+                {"name": "📊 SQLAlchemy ORM", "value": "SQLAlchemy", "checked": True},
+                {"name": "📝 Pydantic Models", "value": "Pydantic", "checked": True},
+                {"name": "🧪 pytest", "value": "pytest", "checked": True},
+                {"name": "🔍 Black + Flake8", "value": "Linting", "checked": True},
+                {"name": "📦 Poetry", "value": "Poetry"},
+                {"name": "🐳 Docker", "value": "Docker"},
+                {"name": "🔄 Alembic Migrations", "value": "Alembic"},
+                {"name": "📈 Prometheus Metrics", "value": "Prometheus"},
+                {"name": "📝 API Documentation", "value": "API-Docs"}
+            ]
+
+        elif project_type == "Express API":
+            choices = [
+                {"name": "⚡ TypeScript", "value": "TypeScript", "checked": True},
+                {"name": "📊 Prisma ORM", "value": "Prisma", "checked": True},
+                {"name": "🔐 JWT Auth", "value": "JWT", "checked": True},
+                {"name": "📝 OpenAPI/Swagger", "value": "OpenAPI", "checked": True},
+                {"name": "🧪 Jest Testing", "value": "Jest", "checked": True},
+                {"name": "🔍 ESLint", "value": "ESLint", "checked": True},
+                {"name": "✨ Prettier", "value": "Prettier", "checked": True},
+                {"name": "🐳 Docker", "value": "Docker"},
+                {"name": "📈 Prometheus Metrics", "value": "Prometheus"},
+                {"name": "🔄 Rate Limiting", "value": "Rate-Limit"}
+            ]
         
         elif project_type == "Python Project":
             choices = [
