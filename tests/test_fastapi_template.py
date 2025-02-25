@@ -1,7 +1,7 @@
 """Tests for FastAPI template."""
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 import subprocess
 from src.templates import FastAPITemplate
 
@@ -104,6 +104,8 @@ def test_sqlalchemy_setup(temp_dir):
         assert model_file.exists()
         content = model_file.read_text()
         assert "class User(Base):" in content
+        assert "email: Mapped[str]" in content
+        assert "hashed_password: Mapped[str]" in content
 
 def test_alembic_setup(temp_dir):
     """Test project generation with Alembic."""
@@ -124,6 +126,7 @@ def test_alembic_setup(temp_dir):
         content = alembic_ini.read_text()
         assert "[alembic]" in content
         assert "sqlalchemy.url" in content
+        assert "script_location = migrations" in content
 
 def test_jwt_setup(temp_dir):
     """Test project generation with JWT authentication."""
@@ -134,6 +137,15 @@ def test_jwt_setup(temp_dir):
         
         success = template.generate()
         assert success
+        
+        # Check auth setup
+        auth_file = temp_dir / "src" / "core" / "auth.py"
+        assert auth_file.exists()
+        content = auth_file.read_text()
+        assert "from jose import JWTError, jwt" in content
+        assert "from passlib.context import CryptContext" in content
+        assert "def create_access_token" in content
+        assert "def verify_password" in content
         
         # Check requirements
         requirements_txt = temp_dir / "requirements.txt"
@@ -152,8 +164,25 @@ def test_docker_setup(temp_dir):
         assert success
         
         # Check Docker files
-        assert (temp_dir / "Dockerfile").exists()
-        assert (temp_dir / "docker-compose.yml").exists()
+        dockerfile = temp_dir / "Dockerfile"
+        compose_file = temp_dir / "docker-compose.yml"
+        
+        assert dockerfile.exists()
+        assert compose_file.exists()
+        
+        # Check Dockerfile content
+        dockerfile_content = dockerfile.read_text()
+        assert "FROM python:3.11-slim" in dockerfile_content
+        assert "WORKDIR /app" in dockerfile_content
+        assert "RUN pip install" in dockerfile_content
+        
+        # Check docker-compose.yml content
+        compose_content = compose_file.read_text()
+        assert "version: '3.8'" in compose_content
+        assert "services:" in compose_content
+        assert "web:" in compose_content
+        assert "db:" in compose_content
+        assert "postgres:" in compose_content
 
 def test_prometheus_setup(temp_dir):
     """Test project generation with Prometheus metrics."""
@@ -164,6 +193,13 @@ def test_prometheus_setup(temp_dir):
         
         success = template.generate()
         assert success
+        
+        # Check metrics setup
+        metrics_file = temp_dir / "src" / "core" / "metrics.py"
+        assert metrics_file.exists()
+        content = metrics_file.read_text()
+        assert "from prometheus_fastapi_instrumentator import Instrumentator" in content
+        assert "def setup_metrics" in content
         
         # Check requirements
         requirements_txt = temp_dir / "requirements.txt"
@@ -183,9 +219,9 @@ def test_api_docs_setup(temp_dir):
         # Check main.py for OpenAPI configuration
         main_py = temp_dir / "src" / "main.py"
         content = main_py.read_text()
-        assert "title=" in content
-        assert "description=" in content
-        assert "version=" in content
+        assert "from fastapi.openapi.utils import get_openapi" in content
+        assert "def custom_openapi" in content
+        assert "app.openapi = custom_openapi" in content
 
 def test_command_failure(template, temp_dir):
     """Test handling of command failures."""
@@ -205,4 +241,65 @@ def test_cleanup_on_exception(template, temp_dir):
         assert not success
         
         # Check that the directory was cleaned up
-        assert not temp_dir.exists() 
+        assert not temp_dir.exists()
+
+def test_poetry_command_failure(temp_dir):
+    """Test handling of Poetry command failures."""
+    template = FastAPITemplate("test_project", ["Poetry"], temp_dir)
+    
+    with patch('subprocess.run') as mock_run:
+        mock_run.side_effect = subprocess.CalledProcessError(1, "poetry init")
+        
+        success = template.generate()
+        assert not success
+        assert not temp_dir.exists()
+
+def test_alembic_command_failure(temp_dir):
+    """Test handling of Alembic command failures."""
+    template = FastAPITemplate("test_project", ["SQLAlchemy", "Alembic"], temp_dir)
+    
+    with patch('subprocess.run') as mock_run:
+        # Make alembic init fail
+        def mock_run_with_failure(cmd, *args, **kwargs):
+            if cmd[0] == "alembic":
+                raise subprocess.CalledProcessError(1, cmd)
+            return MagicMock(returncode=0)
+        
+        mock_run.side_effect = mock_run_with_failure
+        
+        success = template.generate()
+        assert not success
+        assert not temp_dir.exists()
+
+def test_file_write_error(template, temp_dir):
+    """Test handling of file write errors."""
+    with patch('pathlib.Path.write_text') as mock_write:
+        mock_write.side_effect = PermissionError("Permission denied")
+        
+        success = template.generate()
+        assert not success
+        assert not temp_dir.exists()
+
+def test_multiple_features(temp_dir):
+    """Test project generation with multiple features."""
+    features = ["SQLAlchemy", "JWT", "Docker", "Prometheus", "API-Docs"]
+    template = FastAPITemplate("test_project", features, temp_dir)
+    
+    with patch('subprocess.run') as mock_run:
+        mock_run.return_value = MagicMock(returncode=0)
+        
+        success = template.generate()
+        assert success
+        
+        # Check that all feature files exist
+        assert (temp_dir / "src" / "db" / "database.py").exists()
+        assert (temp_dir / "src" / "core" / "auth.py").exists()
+        assert (temp_dir / "Dockerfile").exists()
+        assert (temp_dir / "src" / "core" / "metrics.py").exists()
+        
+        # Check requirements
+        requirements_txt = temp_dir / "requirements.txt"
+        content = requirements_txt.read_text()
+        assert "sqlalchemy" in content
+        assert "python-jose" in content
+        assert "prometheus-fastapi-instrumentator" in content 
