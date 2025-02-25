@@ -10,29 +10,38 @@ class ReactSupabaseTemplate(ReactTemplate):
             return False
             
         # Install Supabase client
-        self._run_command([
+        if not self._run_command([
             "npm",
             "install",
             "@supabase/supabase-js"
-        ])
+        ]):
+            return False
         
-        # Create Supabase client configuration
-        self._setup_supabase_client()
-        
-        # Add selected Supabase features
-        if "Authentication" in self.features:
-            self._setup_auth()
+        try:
+            # Create Supabase client configuration
+            self._setup_supabase_client()
             
-        if "Database Helpers" in self.features:
-            self._setup_database_helpers()
-            
-        if "Storage Helpers" in self.features:
-            self._setup_storage_helpers()
-            
-        return True
+            # Add selected Supabase features
+            if "Authentication" in self.features:
+                self._setup_auth()
+                
+            if "Database Helpers" in self.features:
+                self._setup_database_helpers()
+                
+            if "Storage Helpers" in self.features:
+                self._setup_storage_helpers()
+                
+            return True
+        except Exception:
+            self._cleanup()
+            return False
     
     def _setup_supabase_client(self):
         """Set up Supabase client configuration."""
+        # Create src directory if it doesn't exist
+        src_dir = self.target_dir / "src"
+        src_dir.mkdir(parents=True, exist_ok=True)
+        
         # Create .env file
         env_content = """VITE_SUPABASE_URL=your-project-url
 VITE_SUPABASE_ANON_KEY=your-anon-key

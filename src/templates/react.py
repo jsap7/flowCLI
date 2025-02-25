@@ -27,11 +27,15 @@ class ReactTemplate(BaseTemplate):
             return False
             
         # Install dependencies
-        self._run_command(["npm", "install"], self.target_dir)
-        
+        success = self._run_command(["npm", "install"], self.target_dir)
+        if not success:
+            return False
+            
         # Add selected features
         if "Tailwind CSS" in self.features:
-            self._setup_tailwind()
+            success = self._setup_tailwind()
+            if not success:
+                return False
             
         if "ESLint" in self.features or "Prettier" in self.features:
             self._setup_linting()
@@ -40,32 +44,33 @@ class ReactTemplate(BaseTemplate):
     
     def _setup_tailwind(self):
         """Set up Tailwind CSS."""
-        # Create src directory if it doesn't exist
-        src_dir = self.target_dir / "src"
-        src_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Add Tailwind CSS configuration
-        css_content = """@tailwind base;
+        try:
+            # Create src directory if it doesn't exist
+            src_dir = self.target_dir / "src"
+            src_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Add Tailwind CSS configuration
+            css_content = """@tailwind base;
 @tailwind components;
 @tailwind utilities;
 """
-        self._write_file(self.target_dir / "src" / "index.css", css_content)
-        
-        # Install Tailwind and its dependencies
-        self._run_command([
-            "npm",
-            "install",
-            "-D",
-            "tailwindcss",
-            "postcss",
-            "autoprefixer"
-        ])
-        
-        # Initialize Tailwind
-        self._run_command(["npx", "tailwindcss", "init", "-p"])
-        
-        # Update tailwind.config.js
-        config_content = """/** @type {import('tailwindcss').Config} */
+            self._write_file(self.target_dir / "src" / "index.css", css_content)
+            
+            # Install Tailwind and its dependencies
+            self._run_command([
+                "npm",
+                "install",
+                "-D",
+                "tailwindcss",
+                "postcss",
+                "autoprefixer"
+            ])
+            
+            # Initialize Tailwind
+            self._run_command(["npx", "tailwindcss", "init", "-p"])
+            
+            # Update tailwind.config.js
+            config_content = """/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
@@ -77,7 +82,10 @@ export default {
   plugins: [],
 }
 """
-        self._write_file(self.target_dir / "tailwind.config.js", config_content)
+            self._write_file(self.target_dir / "tailwind.config.js", config_content)
+            return True
+        except (PermissionError, OSError):
+            return False
     
     def _setup_linting(self):
         """Set up ESLint and Prettier."""
