@@ -34,3 +34,5 @@ ENV/
 
 # Project specific
 .flow/ 
+
+.coverage

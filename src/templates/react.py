@@ -40,6 +40,17 @@ class ReactTemplate(BaseTemplate):
     
     def _setup_tailwind(self):
         """Set up Tailwind CSS."""
+        # Create src directory if it doesn't exist
+        src_dir = self.target_dir / "src"
+        src_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Add Tailwind CSS configuration
+        css_content = """@tailwind base;
+@tailwind components;
+@tailwind utilities;
+"""
+        self._write_file(self.target_dir / "src" / "index.css", css_content)
+        
         # Install Tailwind and its dependencies
         self._run_command([
             "npm",
@@ -67,13 +78,6 @@ export default {
 }
 """
         self._write_file(self.target_dir / "tailwind.config.js", config_content)
-        
-        # Add Tailwind directives to index.css
-        css_content = """@tailwind base;
-@tailwind components;
-@tailwind utilities;
-"""
-        self._write_file(self.target_dir / "src" / "index.css", css_content)
     
     def _setup_linting(self):
         """Set up ESLint and Prettier."""

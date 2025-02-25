@@ -4,6 +4,8 @@ from .python import PythonTemplate
 from .nextjs import NextjsTemplate
 from .t3 import T3Template
 from .fastapi import FastAPITemplate
+from .vue import VueTemplate
+from .django import DjangoTemplate
 
 __all__ = [
     'ReactTemplate',
@@ -11,5 +13,7 @@ __all__ = [
     'PythonTemplate',
     'NextjsTemplate',
     'T3Template',
-    'FastAPITemplate'
+    'FastAPITemplate',
+    'VueTemplate',
+    'DjangoTemplate'
 ] 

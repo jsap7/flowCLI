@@ -15,7 +15,9 @@ from .templates import (
     PythonTemplate,
     NextjsTemplate,
     T3Template,
-    FastAPITemplate
+    FastAPITemplate,
+    VueTemplate,
+    DjangoTemplate
 )
 
 app = typer.Typer(
@@ -51,6 +53,10 @@ def get_template_class(project_type: str, framework: str = None):
         return FastAPITemplate
     elif project_type == "Python Project":
         return PythonTemplate
+    elif project_type == "Vue Frontend":
+        return VueTemplate
+    elif project_type == "Django Full-stack":
+        return DjangoTemplate
     return None
 
 @new_app.command("project")
@@ -67,8 +73,17 @@ def new_project():
             ui.print_error("Project name is required")
             raise typer.Exit(1)
         
-        # Get project type
-        project_type = ui.select_project_type()
+        # Get project category
+        category = ui.select_category()
+        if not category:
+            ui.print_error("Project category is required")
+            raise typer.Exit(1)
+        
+        # Get project type within category
+        project_type = ui.select_project_type(category)
+        if not project_type:
+            ui.print_error("Project type is required")
+            raise typer.Exit(1)
         
         # Get framework for React projects
         framework = None

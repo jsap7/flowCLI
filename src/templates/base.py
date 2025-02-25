@@ -47,7 +47,10 @@ class BaseTemplate(ABC):
     def _run_command(self, cmd: List[str], cwd: Path = None) -> bool:
         """Run a shell command."""
         try:
-            subprocess.run(cmd, check=True, cwd=cwd or self.target_dir)
+            result = subprocess.run(cmd, check=True, cwd=cwd or self.target_dir)
+            if result.returncode != 0:
+                self._cleanup()
+                return False
             return True
         except subprocess.CalledProcessError:
             self._cleanup()  # Clean up on command failure
